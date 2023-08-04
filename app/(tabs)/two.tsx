@@ -6,8 +6,7 @@ import { Text, View } from '@/components/Themed';
 export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
+      <Text style={styles.title}>Fire Union Connect</Text>
       <EditScreenInfo path="app/(tabs)/two.tsx" />
     </View>
   );
@@ -20,8 +19,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: 'bold',
+    marginBottom: 20
   },
   separator: {
     marginVertical: 30,

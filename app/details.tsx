@@ -1,15 +1,21 @@
 import { useState } from 'react';
 
-import { StyleSheet, ScrollView } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Platform, StyleSheet } from 'react-native';
+
+import * as Linking from "expo-linking";
+
+import { Button } from 'react-native-paper';
 
 import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 
-import { List } from 'react-native-paper';
+import { useLocalSearchParams } from "expo-router";
 
-import { Link } from "expo-router";
+export default function ModalScreen() {
+  const params = useLocalSearchParams();
+  const { indexValue } = params;
 
-export default function TabOneScreen() {
   const [agencies, setAgencies] = useState([
     {
       office: "Office of the Provincial Fire Marshal",
@@ -223,26 +229,76 @@ export default function TabOneScreen() {
     },
   ]);
 
+  const openAddressOnMap = (office: string, lat: number, lng: number) => {
+    const scheme = Platform.select({
+      ios: 'maps:0,0?q=',
+      android: 'geo:0,0?q=',
+    });
+    const latLng = `${lat},${lng}`;
+    const url = Platform.select({
+      ios: `${scheme}${office}@${latLng}`,
+      android: `${scheme}${latLng}(${office})`,
+    });
+    Linking.openURL(url);
+  };
+
+  const callContact = (number: string) => {
+    Linking.openURL(`tel:${number}`);
+  }
+
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.section}>
-        {agencies.map((agency, i) => (
-          <Link
-            key={i}
-            href={{
-              pathname: "/details",
-              // /* 1. Navigate to the details route with query params */
-              params: { indexValue: i },
+      <Text style={styles.title}>{agencies[indexValue].office}</Text>
+      <View style={{ marginTop: 40 }}>
+        <View>
+          <Text style={styles.detailsLabel}>Addres:</Text>
+          <Text style={styles.detailsValue}>{agencies[indexValue].address}</Text>
+        </View>
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.detailsLabel}>Email:</Text>
+          <Text style={styles.detailsValue}>{agencies[indexValue].email}</Text>
+        </View>
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.detailsLabel}>Location:</Text>
+          <Button
+            icon="map-marker"
+            mode="contained"
+            style={{
+              marginTop: 10
             }}
+            contentStyle={{
+              height: 55
+            }}
+            onPress={() => openAddressOnMap(agencies[indexValue].office, agencies[indexValue].coordinates.lat, agencies[indexValue].coordinates.long)}
           >
-            <List.Item
-              title={agency.office}
-              description={agency.address}
-              left={props => <List.Icon {...props} icon="fire-truck" />}
-            />
-          </Link>
-        ))}
-      </ScrollView>
+            Show Map Location
+          </Button>
+        </View>
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.detailsLabel}>Contacts:</Text>
+          <View style={{ marginTop: 10 }}>
+            {agencies[indexValue].contact.map((contact, i) => (
+              <Button
+                key={i}
+                icon="phone"
+                mode="contained"
+                style={{
+                  marginTop: 10
+                }}
+                contentStyle={{
+                  height: 55
+                }}
+                onPress={() => callContact(contact)}
+              >
+                {contact}
+              </Button>
+            ))}
+          </View>
+        </View>
+      </View>
+
+      {/* Use a light status bar on iOS to account for the black space above the modal */}
+      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
     </View>
   );
 }
@@ -250,19 +306,19 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-  },
-  section: {
-    flex: 1,
-    width: '100%'
+    padding: 25,
+    justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  detailsLabel: {
+    fontSize: 18,
+    fontWeight: 'bold'
   },
+  detailsValue: {
+    fontSize: 18,
+    marginTop: 5
+  }
 });
